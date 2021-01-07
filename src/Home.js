@@ -2,10 +2,10 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
 import {Button, Text, TouchableOpacity, ActivityIndicator} from 'native-base';
-import {View, StyleSheet, TextInput} from 'react-native';
-import {FlatList} from 'react-native-gesture-handler';
+import {View, StyleSheet, TextInput, FlatList} from 'react-native';
+// import {FlatList} from 'react-native-gesture-handler';
 
-export default class Home extends Component {
+class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -19,80 +19,101 @@ export default class Home extends Component {
     };
   }
 
-  //   getData() {
-  //     return fetch(
-  //       'https://hn.algolia.com/api/v1/search_by_date?tags=story&page=' +
-  //         this.state.page,
-  //     )
-  //       .then((response) => response.json())
-  //       .then((responseJson) => {
-  //         this.setState({newsData: responseJson.hits});
-  //         this.setState({isloading: false});
-  //       })
-  //       .catch((error) => {
-  //         console.log(error);
-  //       });
-  //   }
-  //   componentDidMount() {
-  //     this.setState({isloading: true});
-  //     this.getData();
-  //     setInterval(() => {
-  //       this.getData();
-  //     }, 10000);
-  //   }
+  getData() {
+    return fetch(
+      'https://hn.algolia.com/api/v1/search_by_date?tags=story&page=' +
+        this.state.page,
+    )
+      .then((response) => response.json())
+      .then((responseJson) => {
+        this.setState({newsData: responseJson.hits});
+        this.setState({isloading: false});
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  componentDidMount() {
+    this.setState({isloading: true});
+    this.getData();
+    setInterval(() => {
+      this.getData();
+    }, 10000);
+  }
 
-  //   searchFilterData = (text) => {
-  //     this.setState({endReached: false});
-  //     let searchData = this.state.newsData.filter((ele) => {
-  //       return (
-  //         ele.author.toLowerCase().includes(text.toLowerCase()) ||
-  //         ele.title.toLowerCase().includes(text.toLowerCase)()
-  //       );
-  //     });
-  //     this.setState({newsData: searchData, search: true});
-  //   };
+  searchFilterData = (text) => {
+    this.setState({endReached: false});
+    let searchData = this.state.newsData.filter((ele) => {
+      return (
+        ele.author.toLowerCase().includes(text.toLowerCase()) ||
+        ele.title.toLowerCase().includes(text.toLowerCase)()
+      );
+    });
+    this.setState({newsData: searchData, search: true});
+  };
 
-  //   changeText = (text) => {
-  //     this.setState({searchText: text});
-  //     if (this.state.searchText === '') {
-  //       this.setState({newsData: this.state.newsData});
-  //     }
-  //   };
+  changeText = (text) => {
+    this.setState({searchText: text});
+    if (this.state.searchText === '') {
+      this.setState({newsData: this.state.newsData});
+    }
+  };
 
-  //   filterBy() {
-  //     this.setState({showFilter: !this.state.showFilter});
-  //   }
+  filterBy() {
+    this.setState({showFilter: !this.state.showFilter});
+  }
 
-  //   searchByDate = () => {
-  //     var sorted = this.state.newsData;
-  //     sorted.sort((a, b) => (a.created_at > b.created_at ? 1 : -1));
-  //     this.setState({newsData: sorted});
-  //   };
-  //   searchByTitle = () => {
-  //     var sorted = this.state.newsData;
-  //     sorted.sort((a, b) => (a.title > b.title ? 1 : -1));
-  //     this.setState({newsData: sorted});
-  //   };
+  searchByDate = () => {
+    var sorted = this.state.newsData;
+    sorted.sort((a, b) => (a.created_at > b.created_at ? 1 : -1));
+    this.setState({newsData: sorted});
+  };
+  searchByTitle = () => {
+    var sorted = this.state.newsData;
+    sorted.sort((a, b) => (a.title > b.title ? 1 : -1));
+    this.setState({newsData: sorted});
+  };
 
-  //   renderItem(data) {
-  //     return (
-  //       <TouchableOpacity>
-  //         <Text>{data.item.title}</Text>
-  //         <Text>
-  //           <Text>URL:</Text>
-  //           {data.item.url}
-  //         </Text>
-  //         <Text>
-  //           <Text>created_at:</Text>
-  //           {data.item.created_at}
-  //         </Text>
-  //         <Text>
-  //           <Text>Author:</Text>
-  //           {data.item.author}
-  //         </Text>
-  //       </TouchableOpacity>
-  //     );
-  //   }
+  navigateToInfo(item) {
+    this.props.navigation.navigate('Info', {jsonData: item});
+  }
+  updateDate() {
+    let pageUpdate = this.state.page + 1;
+    this.setState({page: pageUpdate});
+    return fetch(
+      'https://hn.algolia.com/api/v1/search_by_date?tags=story&page=' +
+        pageUpdate,
+    )
+      .then((response) => response.json())
+      .then((responseJson) => {
+        this.setState({
+          newsData: [this.this.state.newsData, ...responseJson.hits],
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  renderItem(data) {
+    return (
+      <TouchableOpacity onPress={() => this.navigateToInfo(data.item)}>
+        <Text>{data.item.title}</Text>
+        <Text>
+          <Text>URL:</Text>
+          {data.item.url}
+        </Text>
+        <Text>
+          <Text>created_at:</Text>
+          {data.item.created_at}
+        </Text>
+        <Text>
+          <Text>Author:</Text>
+          {data.item.author}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
   render() {
     return (
       <View>
@@ -115,7 +136,7 @@ export default class Home extends Component {
               borderColor: '#ccc',
               marginVertical: 10,
             }}>
-            <Button block style={{height: 38}}>
+            <Button block style={{height: 38}} onPress={() => this.filterBy()}>
               <Text>Filter</Text>
             </Button>
             <View
@@ -125,10 +146,16 @@ export default class Home extends Component {
                 justifyContent: 'space-between',
                 marginTop: 10,
               }}>
-              <Button block style={{width: '48%', height: 38}}>
+              <Button
+                block
+                style={{width: '48%', height: 38}}
+                onPress={() => this.searchByDate()}>
                 <Text>Created_at</Text>
               </Button>
-              <Button block style={{width: '48%', height: 38}}>
+              <Button
+                block
+                style={{width: '48%', height: 38}}
+                onPress={() => this.searchByTitle()}>
                 <Text>Title</Text>
               </Button>
             </View>
@@ -141,6 +168,10 @@ export default class Home extends Component {
               data={this.state.newsData}
               keyExtractor={(item) => item.id}
               renderItem={(item) => this.renderItem(item)}
+              onEndReachedThreshold={0.03}
+              onEndReached={
+                this.state.endReached ? () => this.updateDate() : null
+              }
             />
           </View>
         </View>
@@ -149,42 +180,43 @@ export default class Home extends Component {
   }
 }
 
-// const styles = StyleSheet.create({
-//   container: {
-//     padding: 20,
-//   },
-//   textBox: {
-//     marginBottom: 10,
-//   },
-//   textButton: {
-//     fontSize: 16,
-//     color: '#fff',
-//     fontWeight: 'bold',
-//   },
-//   textButtonFilter: {
-//     fontWeight: 'bold',
-//   },
-//   listBox: {
-//     padding: 10,
-//     borderColor: '#ccc',
-//     borderWidth: 1,
-//     marginVertical: 10,
-//   },
-//   infoText: {
-//     fontSize: 16,
-//     color: '#000',
-//     fontWeight: 'bold',
-//   },
-//   infotextTitle: {
-//     fontWeight: 'bold',
-//   },
-//   title: {
-//     fontSize: 16,
-//     color: '#444',
-//     fontWeight: 'bold',
-//     borderBottomColor: '#ccc',
-//     borderBottomWidth: 1,
-//     paddingBottom: 5,
-//     margin: 3,
-//   },
-// });
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+  textBox: {
+    marginBottom: 10,
+  },
+  textButton: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  textButtonFilter: {
+    fontWeight: 'bold',
+  },
+  listBox: {
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginVertical: 10,
+  },
+  infoText: {
+    fontSize: 16,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  infotextTitle: {
+    fontWeight: 'bold',
+  },
+  title: {
+    fontSize: 16,
+    color: '#444',
+    fontWeight: 'bold',
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 1,
+    paddingBottom: 5,
+    margin: 3,
+  },
+});
+export default Home;
