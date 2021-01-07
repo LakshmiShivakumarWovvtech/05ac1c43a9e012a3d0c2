@@ -1,20 +1,25 @@
-/* eslint-disable react/no-did-mount-set-state */
 /* eslint-disable react-native/no-inline-styles */
 import React, {Component} from 'react';
-import {Button, Text, TouchableOpacity, ActivityIndicator} from 'native-base';
-import {View, StyleSheet, TextInput, FlatList} from 'react-native';
-// import {FlatList} from 'react-native-gesture-handler';
+import {
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native-gesture-handler';
+import {View, StyleSheet, ActivityIndicator, Dimensions} from 'react-native';
+import {Button, Text} from 'native-base';
+
+const viewportHeight = Dimensions.get('window').height;
 
 class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
       newsData: [],
-      searchText: '',
       isloading: false,
-      page: 0,
+      searchText: '',
       showFilter: false,
       search: false,
+      page: 0,
       endReached: true,
     };
   }
@@ -31,8 +36,18 @@ class Home extends Component {
       })
       .catch((error) => {
         console.log(error);
+        this.data();
       });
   }
+
+  data() {
+    return (
+      <View>
+        <Text>No Data Found</Text>
+      </View>
+    );
+  }
+
   componentDidMount() {
     this.setState({isloading: true});
     this.getData();
@@ -41,22 +56,22 @@ class Home extends Component {
     }, 10000);
   }
 
-  searchFilterData = (text) => {
-    this.setState({endReached: false});
-    let searchData = this.state.newsData.filter((ele) => {
-      return (
-        ele.author.toLowerCase().includes(text.toLowerCase()) ||
-        ele.title.toLowerCase().includes(text.toLowerCase)()
-      );
-    });
-    this.setState({newsData: searchData, search: true});
-  };
-
   changeText = (text) => {
     this.setState({searchText: text});
     if (this.state.searchText === '') {
       this.setState({newsData: this.state.newsData});
     }
+  };
+
+  searchFilterData = (text) => {
+    this.setState({endReached: false});
+    let searchData = this.state.newsData.filter((ele) => {
+      return (
+        ele.author.toLowerCase().includes(text.toLowerCase()) ||
+        ele.title.toLowerCase().includes(text.toLowerCase())
+      );
+    });
+    this.setState({newsData: searchData});
   };
 
   filterBy() {
@@ -74,10 +89,7 @@ class Home extends Component {
     this.setState({newsData: sorted});
   };
 
-  navigateToInfo(item) {
-    this.props.navigation.navigate('Info', {jsonData: item});
-  }
-  updateDate() {
+  updateData() {
     let pageUpdate = this.state.page + 1;
     this.setState({page: pageUpdate});
     return fetch(
@@ -87,28 +99,33 @@ class Home extends Component {
       .then((response) => response.json())
       .then((responseJson) => {
         this.setState({
-          newsData: [this.this.state.newsData, ...responseJson.hits],
+          newsData: [...this.state.newsData, ...responseJson.hits],
         });
       })
       .catch((error) => {
         console.log(error);
       });
   }
+  navigateToInfo(item) {
+    this.props.navigation.navigate('Info', {jsonData: item});
+  }
 
   renderItem(data) {
     return (
-      <TouchableOpacity onPress={() => this.navigateToInfo(data.item)}>
-        <Text>{data.item.title}</Text>
-        <Text>
-          <Text>URL:</Text>
+      <TouchableOpacity
+        style={styles.listBox}
+        onPress={() => this.navigateToInfo(data.item)}>
+        <Text style={styles.title}>{data.item.title}</Text>
+        <Text style={styles.textInfo}>
+          <Text style={styles.textInfoTitle}>Url:</Text>
           {data.item.url}
         </Text>
-        <Text>
-          <Text>created_at:</Text>
+        <Text style={styles.textInfo}>
+          <Text style={styles.textInfoTitle}>Created_at:</Text>
           {data.item.created_at}
         </Text>
-        <Text>
-          <Text>Author:</Text>
+        <Text style={styles.textInfo}>
+          <Text style={styles.textInfoTitle}>author:</Text>
           {data.item.author}
         </Text>
       </TouchableOpacity>
@@ -116,61 +133,70 @@ class Home extends Component {
   }
   render() {
     return (
-      <View>
+      <View style={styles.container}>
         <View>
           <TextInput
-            placeholder="Search by Title Url and Author"
+            placeholder="search by author or title"
             onChangeText={(text) => this.changeText(text)}
             value={this.state.searchText}
+            style={styles.textBox}
           />
-
           <Button
             block
+            disabled={this.state.searchText === '' ? true : false}
             onPress={() => this.searchFilterData(this.state.searchText)}>
-            <Text>Search</Text>
+            <Text style={styles.textButton}>Search</Text>
           </Button>
           <View
             style={{
               padding: 10,
-              borderWidth: 1,
               borderColor: '#ccc',
+              borderWidth: 1,
               marginVertical: 10,
             }}>
             <Button block style={{height: 38}} onPress={() => this.filterBy()}>
-              <Text>Filter</Text>
+              <Text style={styles.textButton}>Filter</Text>
             </Button>
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                marginTop: 10,
-              }}>
-              <Button
-                block
-                style={{width: '48%', height: 38}}
-                onPress={() => this.searchByDate()}>
-                <Text>Created_at</Text>
-              </Button>
-              <Button
-                block
-                style={{width: '48%', height: 38}}
-                onPress={() => this.searchByTitle()}>
-                <Text>Title</Text>
-              </Button>
-            </View>
+            {this.state.showFilter && (
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginTop: 10,
+                }}>
+                <Button
+                  light
+                  block
+                  style={{width: '48%', height: 38}}
+                  onPress={() => this.searchByDate()}>
+                  <Text style={styles.textButtonFilter}>Create_at</Text>
+                </Button>
+                <Button
+                  light
+                  block
+                  style={{width: '48%', height: 38}}
+                  onPress={() => this.searchByTitle()}>
+                  <Text>Title</Text>
+                </Button>
+              </View>
+            )}
           </View>
           {this.state.isloading && (
             <ActivityIndicator size="large" color="#000" />
           )}
-          <View>
+          <View
+            style={[
+              styles.listContainer,
+              this.state.showFilter ? styles.hightShow : styles.hightRemove,
+            ]}>
             <FlatList
               data={this.state.newsData}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(id) => id.toString()}
               renderItem={(item) => this.renderItem(item)}
               onEndReachedThreshold={0.03}
               onEndReached={
-                this.state.endReached ? () => this.updateDate() : null
+                this.state.endReached ? () => this.updateData() : null
               }
             />
           </View>
@@ -179,13 +205,14 @@ class Home extends Component {
     );
   }
 }
+export default Home;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-  },
   textBox: {
     marginBottom: 10,
+  },
+  container: {
+    padding: 20,
   },
   textButton: {
     fontSize: 16,
@@ -193,30 +220,38 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   textButtonFilter: {
-    fontWeight: 'bold',
+    fontSize: 16,
   },
   listBox: {
     padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
     marginVertical: 10,
-  },
-  infoText: {
-    fontSize: 16,
-    color: '#000',
-    fontWeight: 'bold',
-  },
-  infotextTitle: {
-    fontWeight: 'bold',
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   title: {
     fontSize: 16,
-    color: '#444',
     fontWeight: 'bold',
+    color: '#444',
     borderBottomColor: '#ccc',
     borderBottomWidth: 1,
-    paddingBottom: 5,
     margin: 3,
+    paddingBottom: 10,
+  },
+  textInfo: {
+    margin: 5,
+    fontSize: 16,
+    color: '#000',
+  },
+  textInfoTitle: {
+    fontWeight: 'bold',
+  },
+  listContainer: {
+    marginTop: 5,
+  },
+  hightRemove: {
+    height: viewportHeight - 280,
+  },
+  hightShow: {
+    height: viewportHeight - 340,
   },
 });
-export default Home;
